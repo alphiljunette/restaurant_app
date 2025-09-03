@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="login-title">Connexion Admin</title>
+    <link rel="stylesheet" href="./assets/login.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Formulaire principal (Connexion/Inscription) -->
+    <div class="container" id="conteneur">
+        <div class="form-container sign-up">
+            <form id="signUpForm">
+                <h1 data-i18n="sign-up-title">Créer un Compte</h1>
+                <span data-i18n="sign-up-subtitle">Inscrivez-vous avec votre nom et email</span>
+                <input type="text" name="nom" placeholder="Nom" required autocomplete="off">
+                <input type="email" name="email" placeholder="Email" required autocomplete="off">
+                <div class="password-container">
+                    <input type="password" name="password" placeholder="Mot de passe" required autocomplete="off">
+                    <span class="toggle-password">👁️‍🗨️</span>
+                </div>
+                <button type="submit" data-i18n="sign-up-button">S'inscrire</button>
+            </form>
+        </div>
+        <div class="form-container sign-in">
+            <form id="signInForm">
+                <h1 data-i18n="sign-in-title">Connexion</h1>
+                <span data-i18n="sign-in-subtitle">Connectez-vous avec votre nom et mot de passe</span>
+                <input type="text" name="username" placeholder="Nom" required autocomplete="off">
+                <div class="password-container">
+                    <input type="password" name="password" placeholder="Mot de passe" required autocomplete="off">
+                    <span class="toggle-password">👁️‍🗨️</span>
+                </div>
+                <a href="#" id="forgotPasswordLink" data-i18n="forgot-password">Mot de passe oublié ?</a>
+                <button type="submit" data-i18n="sign-in-button">Se connecter</button>
+            </form>
+        </div>
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1 data-i18n="welcome-back">Content de vous revoir ☺</h1>
+                    <p data-i18n="welcome-back-subtitle">Connectez-vous pour accéder à votre espace</p>
+                    <button class="hidden" id="login" data-i18n="sign-in-button">Connexion</button>
+                </div>
+                <div class="toggle-panel toggle-right">
+                    <h1 data-i18n="new-here">Nouveau ici</h1>
+                    <p data-i18n="new-here-subtitle">Inscrivez-vous et découvrez toutes les fonctionnalités</p>
+                    <button class="hidden" id="registre" data-i18n="sign-up-button">Inscription</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Formulaire Mot de passe oublié -->
+    <div class="container" id="forgotPasswordContainer" style="display: none;">
+        <div class="form-container forgot-password">
+            <form id="forgotPasswordForm">
+                <h1 data-i18n="reset-password-title">Réinitialiser le mot de passe</h1>
+                <span data-i18n="reset-password-subtitle">Entrez votre adresse e-mail pour recevoir un lien de réinitialisation</span>
+                <input type="email" name="email" placeholder="Email" required autocomplete="off">
+                <button type="submit" data-i18n="send-button">Envoyer</button>
+                <a href="#" id="backToLogin" data-i18n="back-to-login">Retour à la connexion</a>
+            </form>
+        </div>
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1 data-i18n="reset-password-title">Mot de passe oublié ?</h1>
+                    <p data-i18n="reset-password-subtitle">Recevez un lien pour réinitialiser votre mot de passe en toute sécurité.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Formulaire Réinitialisation du mot de passe -->
+    <div class="container" id="resetPasswordContainer" style="display: none;">
+        <div class="form-container reset-password">
+            <form id="resetPasswordForm">
+                <h1 data-i18n="new-password-title">Nouveau mot de passe</h1>
+                <span data-i18n="new-password-subtitle">Entrez votre nouveau mot de passe</span>
+                <input type="hidden" name="token">
+                <div class="password-container">
+                    <input type="password" name="password" placeholder="Nouveau mot de passe" required autocomplete="off">
+                    <span class="toggle-password">👁️‍🗨️</span>
+                </div>
+                <button type="submit" data-i18n="reset-button">Réinitialiser</button>
+                <a href="#" id="backToLoginFromReset" data-i18n="back-to-login">Retour à la connexion</a>
+            </form>
+        </div>
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1 data-i18n="new-password-title">Nouveau mot de passe</h1>
+                    <p data-i18n="new-password-subtitle">Créez un mot de passe sécurisé pour votre compte.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Slider Plein Écran -->
+    <div class="slider-container">
+        <div class="main-slider" id="mainSlider">
+            <div class="slide">
+                <img src="./assets/image/login/29dddbb74db0c68adc5358271281e03a (1).jpg" alt="Admin">
+                <div class="slide-content">
+                    <h2 data-i18n="slider-admin-title">Espace Administrateur</h2>
+                    <p data-i18n="slider-admin-subtitle">Gérez votre plateforme en toute simplicité</p>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="./assets/image/login/82163432e70009ce3c4707ec7e36f4e1.jpg" alt="Security">
+                <div class="slide-content">
+                    <h2 data-i18n="slider-security-title">Sécurité Renforcée</h2>
+                    <p data-i18n="slider-security-subtitle">Protection avancée de vos données</p>
+                </div>
+            </div>
+            <div class="slide">
+                <img src="./assets/image/login/1741ead35331b0901cf8da0058bb17a9.jpg" alt="Dashboard">
+                <div class="slide-content">
+                    <h2 data-i18n="slider-dashboard-title">Tableau de Bord Complet</h2>
+                    <p data-i18n="slider-dashboard-subtitle">Toutes vos statistiques en un seul endroit</p>
+                </div>
+            </div>
+        </div>
+        <button id="prevBtn">&#10094;</button>
+        <button id="nextBtn">&#10095;</button>
+        <div class="thumbnails" id="thumbnails">
+            <div class="thumbnail active" data-index="0">
+                <img src="./assets/image/login/29dddbb74db0c68adc5358271281e03a (1).jpg" alt="Admin">
+            </div>
+            <div class="thumbnail" data-index="1">
+                <img src="./assets/image/login/82163432e70009ce3c4707ec7e36f4e1.jpg" alt="Security">
+            </div>
+            <div class="thumbnail" data-index="2">
+                <img src="./assets/image/login/1741ead35331b0901cf8da0058bb17a9.jpg" alt="Dashboard">
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/login.js"></script>
+</body>
+</html>
