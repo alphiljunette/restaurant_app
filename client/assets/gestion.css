@@ -1,0 +1,302 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-color: #f4f1eb;
+    --border-color: #ffffff;
+    --accent-color: rgba(212,136,21,1);
+    --light-shadow: rgba(19,48,77,1);
+    --dark-shadow: rgba(8,14,28,1);
+    font-size: 14px;
+}
+
+body {
+    background: var(--bg-color);
+    padding: 20px 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.container {
+    max-width: 1200px;
+    padding: 0 15px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: var(--dark-shadow);
+    font-weight: bold;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.card-header {
+    background: var(--accent-color);
+    color: var(--border-color);
+    font-weight: bold;
+    border-radius: 10px 10px 0 0;
+    padding: 1rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.nav-tabs {
+    border-bottom: 2px solid var(--border-color);
+}
+
+.nav-tabs .nav-link {
+    color: #fcb045d0;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--accent-color);
+    border-bottom: 3px solid rgba(212,136,21,0.5);
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link:focus,
+.nav-tabs .nav-link:active {
+    color: var(--accent-color);
+    font-weight: bold;
+    border-bottom: 3px solid var(--accent-color);
+    background: rgba(212,136,21,0.1);
+}
+
+.plat-actions {
+    margin-top: 15px;
+    float: right;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+}
+
+.card img {
+    object-fit: cover;
+    height: 150px;
+    width: 100%;
+    border-radius: 8px;
+}
+
+#currentImage img {
+    max-width: 100px;
+    max-height: 100px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.tab-content {
+    min-height: 300px;
+    padding: 1rem;
+    background: var(--bg-color);
+    border-radius: 0 0 10px 10px;
+}
+
+.alert-info {
+    background: rgba(212,136,21,0.1);
+    border-color: rgba(212,136,21,0.3);
+    color: var(--dark-shadow);
+}
+
+.plat-card {
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--bg-color);
+    transition: transform 0.3s ease;
+}
+
+.plat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Bouton Ajouter & Sauvegarder */
+#addPlatForm button[type="submit"],
+#editPlatForm button[type="submit"] {
+    background: var(--accent-color);
+    border: none;
+    color: var(--border-color);
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+}
+
+/* Bouton Modifier */
+.btn-warning {
+    background: var(--accent-color);
+    border: none;
+    color: var(--border-color);
+    font-weight: 500;
+}
+
+/* Bouton Supprimer */
+.btn-danger {
+    background: rgba(200,50,50,0.95);
+    border: none;
+    color: var(--border-color);
+    font-weight: 500;
+}
+
+/* Bouton Fermer Modal */
+.modal-footer .btn-secondary {
+    background: rgba(212,136,21,0.7);
+    border: none;
+    color: var(--border-color);
+}
+
+/* Inputs & Textareas */
+.form-control,
+.form-select,
+textarea {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--dark-shadow);
+}
+
+/* Dropdown stylisé */
+.form-select {
+    background: var(--bg-color);
+    color: var(--dark-shadow);
+    padding: 0.5rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23814a17' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px;
+}
+
+.form-select option {
+    background: var(--bg-color);
+    color: var(--dark-shadow);
+    padding: 0.5rem;
+}
+
+.form-select option:checked {
+    background: var(--accent-color);
+    color: var(--border-color);
+}
+
+/* Modal commandes */
+#orders-list div {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-color);
+}
+
+.modal-content {
+    background: var(--bg-color);
+    border: none;
+    border-radius: 10px;
+}
+
+.modal-header {
+    background: var(--accent-color);
+    color: var(--border-color);
+    border-radius: 10px 10px 0 0;
+}
+
+.commande-item .badge {
+    border-radius: 8px;
+}
+
+.commande-item .badge.unavailable {
+    background: rgba(200,50,50,0.95);
+    color: var(--border-color);
+}
+
+/* Filtres commandes */
+.filter-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.filter-group input,
+.filter-group select {
+    max-width: 200px;
+}
+
+/* Toasts */
+.toast {
+    border: none;
+    border-radius: 8px;
+}
+
+.toast-success {
+    background: #28a745;
+    color: white;
+}
+
+.toast-error {
+    background: #dc3545;
+    color: white;
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 10px;
+    }
+    .card-body .row {
+        flex-direction: column;
+    }
+    .card-body .col-md-3,
+    .card-body .col-md-9 {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .plat-actions {
+        float: none;
+        justify-content: center;
+    }
+    .btn-sm {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .filter-group {
+        flex-direction: column;
+    }
+    .filter-group input,
+    .filter-group select {
+        max-width: 100%;
+    }
+}

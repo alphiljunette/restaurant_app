@@ -1,0 +1,611 @@
+:root {
+    --bg-color: #f4f1eb;
+    --border-color: #ffffff;
+    --accent-color: rgba(212,136,21,1);
+    --light-shadow: rgba(19,48,77,1);
+    --dark-shadow: rgba(8,14,28,1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-color);
+}
+
+/* Slider Plein Écran (Horizontal) */
+.slider-container {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.main-slider {
+    display: flex;
+    transition: transform 0.5s ease;
+    width: 300vw; /* 3 slides x 100vw */
+}
+
+.slide {
+    min-width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+}
+
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.slide-content {
+    position: absolute;
+    bottom: 2%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 25px;
+    text-align: center;
+    max-width: 800px;
+    width: 90%;
+    border-radius: 10px;
+    backdrop-filter: blur(2px);
+}
+
+.slide-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px var(--dark-shadow);
+}
+
+.slide-content p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+#prevBtn,
+#nextBtn,
+.thumbnails {
+    display: none;
+    visibility: hidden;
+}
+
+/* Container formulaire */
+.container {
+    background-color: var(--bg-color);
+    border-radius: 30px;
+    box-shadow: 0 5px 15px var(--light-shadow);
+    position: relative;
+    overflow: hidden;
+    width: 80%;
+    max-width: 760px; 
+    min-height: 500px;
+    z-index: 2;
+    margin: 20px auto;
+}
+
+.container.active {
+    background-color: rgba(210, 210, 210, 0.95);
+}
+
+.container p {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.5px;
+    margin: 20px 0;
+    color: #333;
+}
+
+.container span {
+    font-size: 12px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.container a {
+    color: #333;
+    font-size: 13px;
+    text-decoration: none;
+    margin: 10px 0;
+    transition: color 0.3s;
+}
+
+.container a:hover {
+    color: var(--light-shadow)
+}
+
+.container button {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--accent-color);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 35px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.container button:hover {
+    background-color: var(--light-shadow)/* Variation plus claire de --accent-color */
+}
+
+.container button:active {
+    transform: translateY(0);
+}
+
+.container button.hidden {
+    background-color: transparent;
+    border-color: var(--border-color);
+}
+
+.container button.hidden:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.container form {
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 40px;
+    height: 100%;
+    width: 80%;
+    transition: all 0.5s ease-in-out;
+    top: 0;
+    
+}
+
+.container input {
+    background-color: var(--border-color);
+    border: none;
+    margin: 8px 0;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+    transition: box-shadow 0.3s;
+}
+
+.container input:focus {
+    box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.form-container {
+    position: absolute;
+    top: 0;
+    height: 90%;
+    width: 50%;
+    transition: all 0.5s ease-in-out;
+}
+
+.sign-in {
+    left: 0;
+    z-index: 2;
+}
+
+.container.active .sign-in {
+    transform: translateX(100%);
+}
+
+.sign-up {
+    left: 0;
+    opacity: 0;
+    z-index: 1;
+}
+
+.container.active .sign-up {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+    animation: move 0.6s;
+}
+
+@keyframes move {
+    0%, 49.99% { opacity: 0; z-index: 1; }
+    50%, 100% { opacity: 1; z-index: 5; }
+}
+
+.toggle-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 40%;
+    height: 90%;
+    overflow: hidden;
+    transition: all 0.5s ease-in-out;
+    border-radius: 20px;
+    z-index: 1000;
+}
+
+.container.active .toggle-container {
+    transform: translateX(-100%);
+}
+
+.toggle {
+    background: linear-gradient(to right, var(--accent-color), var(--light-shadow));
+    height: 100%;
+    width: 200%;
+    color: white;
+    position: relative;
+    left: -100%;
+    transform: translateX(0);
+    transition: all 0.5s ease-in-out;
+}
+
+.container.active .toggle {
+    background: linear-gradient(135deg, var(--light-shadow), var(--accent-color));
+    transform: translateX(50%);
+}
+
+.toggle-panel {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 30px;
+    text-align: center;
+    top: 0;
+    transform: translateX(0);
+    transition: all 0.5s ease-in-out;
+}
+
+.toggle-panel h1 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px var(--dark-shadow);
+}
+
+.toggle-panel p {
+    color: white;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.toggle-left {
+    transform: translateX(-200%);
+}
+
+.container.active .toggle-left {
+    transform: translateX(0);
+}
+
+.toggle-right {
+    right: 0;
+    transform: translateX(0);
+}
+
+.password-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.password-container input {
+    padding-right: 35px;
+}
+
+.password-container .toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Styles pour Mot de passe oublié */
+#forgotPasswordContainer {
+    background-color: var(--bg-color);
+    border-radius: 30px;
+    box-shadow: 0 5px 15px var(--light-shadow);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 700px;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    margin: 20px auto;
+}
+
+#forgotPasswordContainer .form-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 90%;
+    padding: 0 40px;
+    transition: all 0.5s ease-in-out;
+}
+
+#forgotPasswordContainer .toggle-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 90%;
+    border-radius: 20px;
+    z-index: 1000;
+}
+
+#forgotPasswordContainer .toggle {
+    background: linear-gradient(to right, var(--accent-color), rgba(255, 158, 27, 1));
+    width: 100%;
+    left: 0;
+}
+
+#forgotPasswordContainer form {
+    background-color: transparent;
+}
+
+#forgotPasswordContainer input:focus {
+    box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+#forgotPasswordContainer button {
+    background-color: var(--accent-color);
+}
+
+#forgotPasswordContainer button:hover {
+    background-color: rgba(255, 158, 27, 1);
+}
+
+#forgotPasswordContainer a:hover {
+    color: var(--light-shadow); /* Bleu pour "Mot de passe oublié" */
+}
+
+#forgotPasswordContainer a#backToLogin:hover {
+    color: var(--accent-color); /* Orange pour "Retour à la connexion" */
+}
+
+/* Styles pour Réinitialisation du mot de passe */
+#resetPasswordContainer {
+    background-color: var(--bg-color);
+    border-radius: 30px;
+    box-shadow: 0 5px 15px var(--light-shadow);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 700px;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    margin: 20px auto;
+}
+
+#resetPasswordContainer .form-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 90%;
+    padding: 0 40px;
+    transition: all 0.5s ease-in-out;
+}
+
+#resetPasswordContainer .toggle-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 90%;
+    border-radius: 20px;
+    z-index: 1000;
+}
+
+#resetPasswordContainer .toggle {
+    background: linear-gradient(to right, var(--light-shadow), rgba(66, 165, 245, 1));
+    width: 100%;
+    left: 0;
+}
+
+#resetPasswordContainer form {
+    background-color: transparent;
+}
+
+#resetPasswordContainer input:focus {
+    box-shadow: 0 0 0 2px var(--light-shadow);
+}
+
+#resetPasswordContainer button {
+    background-color: var(--light-shadow);
+}
+
+#resetPasswordContainer button:hover {
+    background-color: rgba(66, 165, 245, 1);
+}
+
+#resetPasswordContainer a:hover {
+    color: var(--light-shadow); /* Bleu pour "Mot de passe oublié" */
+}
+
+#resetPasswordContainer a#backToLoginFromReset:hover {
+    color: var(--accent-color); /* Orange pour "Retour à la connexion" */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .slider-container {
+        height: 100vh;
+        top: auto;
+        bottom: 0;
+        z-index: 0;
+    }
+
+    .main-slider {
+        width: 300vw;
+    }
+
+    .slide {
+        height: 100vh;
+    }
+
+    .slide-content {
+        bottom: 5%;
+        padding: 20px;
+        max-width: 100%;
+        width: 95%;
+    }
+
+    .slide-content h2 {
+        font-size: 2rem;
+    }
+
+    .slide-content p {
+        font-size: 1rem;
+    }
+
+    .container {
+        margin: 30px auto;
+        width: 95%;
+        max-width: 400px;
+        min-height: 450px; /* Augmenté pour mobile */
+    }
+
+    .form-container,
+    .sign-in,
+    .sign-up {
+        width: 100%;
+        height: 100%;
+        transform: translateY(0);
+        transition: all 0.5s ease-in-out;
+    }
+
+    .container.active .sign-in {
+        transform: translateY(100%);
+    }
+
+    .container.active .sign-up {
+        transform: translateY(-100%);
+        opacity: 1;
+        z-index: 5;
+    }
+
+    .toggle-container {
+        width: 100%;
+        left: 0;
+        height: 150px;
+        top: auto;
+        bottom: 0;
+    }
+
+    .container.active .toggle-container {
+        transform: translateY(100%);
+    }
+
+    .toggle {
+        width: 100%;
+        height: 200%;
+        left: 0;
+        top: -100%;
+    }
+
+    .container.active .toggle {
+        transform: translateY(50%);
+    }
+
+    .toggle-panel {
+        width: 100%;
+        height: 50%;
+        padding: 20px;
+    }
+
+    .toggle-panel h1 {
+        font-size: 1.6rem;
+    }
+
+    .toggle-panel p {
+        font-size: 0.85rem;
+    }
+
+    #forgotPasswordContainer,
+    #resetPasswordContainer {
+        margin: 30px auto;
+        width: 95%;
+        max-width: 400px;
+        min-height: 450px;
+    }
+
+    #forgotPasswordContainer .form-container,
+    #resetPasswordContainer .form-container {
+        width: 100%;
+        height: 100%;
+        padding: 0 25px;
+        transform: translateY(0);
+    }
+
+    #forgotPasswordContainer .toggle-container,
+    #resetPasswordContainer .toggle-container {
+        width: 100%;
+        height: 150px;
+        top: auto;
+        bottom: 0;
+    }
+
+    #forgotPasswordContainer input,
+    #resetPasswordContainer input {
+        max-width: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .slide-content {
+        padding: 15px;
+        max-width: 100%;
+    }
+
+    .slide-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .slide-content p {
+        font-size: 0.9rem;
+    }
+
+    .container {
+        min-height: 400px;
+        max-width: 350px;
+    }
+
+    .container form {
+        padding: 0 20px;
+    }
+
+    #forgotPasswordContainer .form-container,
+    #resetPasswordContainer .form-container {
+        padding: 0 20px;
+    }
+
+    #forgotPasswordContainer input,
+    #resetPasswordContainer input {
+        max-width: 200px;
+    }
+}

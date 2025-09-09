@@ -1,0 +1,250 @@
+*{
+    margin: 0;
+    border: 0;
+    padding: 0;
+    font-family: sans-serif;
+    box-sizing: border-box;
+    
+}
+:root{
+    --bg-color:#f4f1eb;
+    --border-color:#ffffff;
+    --accent-color: rgba(212,136,21,255);
+    --light-shadow: rgba(19,48,77,255);
+    --dark-shadow: rgba(8,14,28,255);
+    font-size: 14px;
+}
+body {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    background: #eaf3f2;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.contact{
+    margin-top: 0.70rem;
+    width: 95%;
+    display: flex;
+    
+}
+.lng_dropdown{
+    position: relative;
+    text-align: center;
+    width: 40%;
+    height: 30px;
+    margin-left: auto; 
+}
+
+/* Dropdown button style */
+.lng_dropdown_btn{
+    /* background: #f4f7fabd; */
+    background: transparent;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    border-radius: 16px;
+    box-shadow: 3px 3px 7px var(--dark-shadow),
+                -2px -2px 7px var(--light-shadow);
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Active state for dropdon button */
+.lng_dropdown_btn.active {
+    box-shadow: inset 2px 2px 6px var(--light-shadow),
+                inset -2px -2px 6px var(--dark-shadow);
+}
+
+/* Text container inside button */
+.lng_dropdown_btn_text {
+    width: 100%;
+    font-weight: 600;
+    font-size: 12px;
+    color: white;
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border-radius: 8px;
+    padding: 4px 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.lng_dropdown_btn_text span {
+    flex: 1;
+    min-width: 0;
+}
+
+/* language previeuw circle */
+.lng_previeuw{
+    width: 28px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 10px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+                -1px -1px 3px rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease;
+    background: var(--light-shadow);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.lng_dropdown_btn.active .lng_previeuw {
+    transform: scale(1.2);
+}
+
+/* Shimmer effect for color previeuw */
+.lng_previeuw::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        rgba(255, 255, 255, 0) 40%, 
+        rgba(255, 255, 255, 0.8) 50%, 
+        rgba(255, 255, 255, 0) 60%);
+    transform: rotate(45deg);
+    animation: shimmer 3s infinite;
+}
+
+/* shimmer animation keyframes */
+@keyframes shimmer {
+    0% {
+        transform: rotate(45deg) translateX(-100%);
+    }
+    100% {
+        transform: rotate(45deg) translateX(100%);
+    }
+}
+
+/* dropdown arrow icon */
+.lng_dropdown_btn_icon{
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(45deg);
+    transition: transform 0.3s ease;
+}
+
+/* rotate arrow when dropdown is active */
+.lng_dropdown_btn.active .lng_dropdown_btn_icon {
+    transform: rotate(225deg);
+}
+
+/* Dropdown content container */
+.lng_dropdown_content{
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 100%;
+    background: transparent;
+    max-height: 0;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    border-radius: 16px;
+    box-shadow: 0 6px 22px var(--dark-shadow), 4px 4px 10px var(--dark-shadow), -6px -6px 12px var(--dark-shadow);
+    z-index: 100;
+}
+.lng_dropdown_content.active {
+    max-height: 300px; /* Adjust based on content */
+    opacity: 1;
+    visibility: visible;
+}
+
+/* individual lng item */
+.lng_item, .lng_item.selected {
+    width: 100%;           /* Prend toute la largeur de la colonne */
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-top: 0.3rem;
+    justify-self: stretch;
+    height: 30px;          /* Plus confortable pour image+texte */
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--light-shadow);
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.lng_dropdown_content.active .lng_item {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* staggered animation delays for items */
+.lng_dropdown_content.active .lng_item:nth-child(1) {
+    transition-delay: 0.1s;
+}
+.lng_dropdown_content.active .lng_item:nth-child(2) {
+    transition-delay: 0.15s;
+}
+.lng_dropdown_content.active .lng_item:nth-child(3) {
+    transition-delay: 0.2s;
+}
+.lng_dropdown_content.active .lng_item:nth-child(4) {
+    transition-delay: 0.25s;
+}
+/* Hover effect for lng items */
+.lng_item:hover {
+    box-shadow: 2px 2px 4px var(--dark-shadow),
+                -2px -2px 4px var(--light-shadow);
+    transform: scale(1.05);
+}
+
+.lng_item.selected {
+    background: var(--dark-shadow);
+    box-shadow: inset 2px 2px 4px var(--dark-shadow),
+                inset var(--light-shadow);
+}
+
+/* color previeuw circle in items */
+.lng_item_previeuw {
+    width: 32px;
+    height: 26px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.lng_item_text {
+    font-size: 13px;   /* Plus lisible */
+    color: white;
+    font-weight: 400;
+}
+.lng_item_previeuw img {
+    width: 90%;
+    height: 90%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    position: static; /* ← important pour ne pas hériter de absolute */
+}
+.lng_item.selected .lng_item_text {
+    font-weight: 00;
+}
