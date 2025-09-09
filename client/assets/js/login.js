@@ -207,7 +207,7 @@ if (signUpForm) {
             const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nom, email, password })
+                body: JSON.stringify({ username, email, password })
             });
             const data = await res.json();
             if (res.ok) {
