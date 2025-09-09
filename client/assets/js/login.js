@@ -190,11 +190,11 @@ const signUpForm = document.querySelector('.sign-up form');
 if (signUpForm) {
     signUpForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nom = e.target.querySelector('input[name="username"]').value;
+        const username = e.target.querySelector('input[name="username"]').value;
         const email = e.target.querySelector('input[name="email"]').value;
         const password = e.target.querySelector('input[name="password"]').value;
 
-        if (!nom || !email || !password) {
+        if (!username || !email || !password) {
             showToast('Remplissez tous les champs', 'error');
             return;
         }
