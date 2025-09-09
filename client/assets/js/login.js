@@ -190,7 +190,7 @@ const signUpForm = document.querySelector('.sign-up form');
 if (signUpForm) {
     signUpForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const nom = e.target.querySelector('input[name="nom"]').value;
+        const nom = e.target.querySelector('input[name="username"]').value;
         const email = e.target.querySelector('input[name="email"]').value;
         const password = e.target.querySelector('input[name="password"]').value;
 
