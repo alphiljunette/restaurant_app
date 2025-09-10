@@ -32,6 +32,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client')));
 app.use('/uploads', express.static(uploadsDir));
 
+const authRoutes = require('./routes/authRoutes');
+app.use('/api', authRoutes);
+
 // Multer pour uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
