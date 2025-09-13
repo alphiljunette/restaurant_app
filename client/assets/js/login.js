@@ -228,7 +228,7 @@ const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 if (forgotPasswordForm) {
     forgotPasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = e.target.querySelector('input[name="email"]').value;
+        const email = e.target.querySelector('input[name="email"]').value.trim(); // ✅ corrigé
 
         if (!email) {
             showToast('Remplissez tous les champs', 'error');
@@ -241,9 +241,9 @@ if (forgotPasswordForm) {
 
         try {
             const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })  // ✅ envoi correct
             });
             const data = await res.json();
             if (res.ok) {
@@ -252,8 +252,9 @@ if (forgotPasswordForm) {
                 resetPasswordContainer.style.display = 'none';
                 document.querySelector('.sign-in').style.display = 'flex';
                 document.querySelector('.sign-up').style.display = 'none';
+                showToast("Un email de réinitialisation a été envoyé !", "success");
             } else {
-                showToast(data.error || 'Erreur lors de la demande de réinitialisation', 'error');
+                showToast(data.message || 'Erreur lors de la demande de réinitialisation', 'error');
             }
         } catch {
             showToast('Erreur lors de la demande de réinitialisation', 'error');
@@ -288,8 +289,9 @@ if (resetPasswordForm) {
                 document.querySelector('.sign-in').style.display = 'flex';
                 document.querySelector('.sign-up').style.display = 'none';
                 window.history.replaceState({}, document.title, window.location.pathname);
+                showToast("Mot de passe réinitialisé avec succès ✅", "success");
             } else {
-                showToast(data.error || 'Erreur lors de la réinitialisation', 'error');
+                showToast(data.message || 'Erreur lors de la réinitialisation', 'error');
             }
         } catch {
             showToast('Erreur lors de la réinitialisation', 'error');

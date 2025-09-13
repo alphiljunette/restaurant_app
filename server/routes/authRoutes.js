@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { forgotPassword, resetPassword } = require('../controllers/authController');
+const authController = require('../controllers/authController');
 
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+// Route mot de passe oublié
+router.post('/forgot-password', authController.forgotPassword);
+
+// Route réinitialisation mot de passe
+router.post('/reset-password', authController.resetPassword);
 
 module.exports = router;
