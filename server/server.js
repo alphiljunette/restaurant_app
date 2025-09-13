@@ -20,9 +20,9 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Serveur lancé sur le port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Serveur lancé sur le port ${PORT}`);
+// });
 const SECRET_KEY = process.env.SECRET_KEY;
 
 // Dossiers uploads et QR codes
@@ -329,5 +329,5 @@ io.on('connection', (socket) => {
 
 /* ------------------------ DEMARRAGE SERVEUR ------------------------ */
 server.listen(PORT, () => {
-    console.log(`Serveur en écoute sur http://localhost:${PORT}`);
+    console.log(`Serveur en écoute sur le port ${PORT}`);
 });
