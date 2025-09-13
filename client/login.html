@@ -56,8 +56,12 @@
         <div class="form-container forgot-password">
             <form id="forgotPasswordForm">
                 <h1 data-i18n="reset-password-title">Réinitialiser le mot de passe</h1>
-                <span data-i18n="reset-password-subtitle">Entrez votre adresse e-mail pour recevoir un lien de réinitialisation</span>
-                <input type="email" name="email" id="forgotEmail" placeholder="Email" required autocomplete="off">
+                <span>Seul l’admin peut réinitialiser le mot de passe d’un utilisateur</span>
+
+                <!-- Nom de l'utilisateur cible -->
+                <input type="text" name="targetUsername" id="targetUsername" placeholder="Nom de l’utilisateur à réinitialiser" required autocomplete="off">
+
+                <div id="forgotError" style="color:red; margin-top:5px;"></div>
                 <button type="submit" data-i18n="send-button">Envoyer</button>
                 <a href="#" id="backToLogin" data-i18n="back-to-login">Retour à la connexion</a>
             </form>

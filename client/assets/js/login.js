@@ -230,42 +230,43 @@ if (signUpForm) {
 
 // Formulaire "Mot de passe oublié"
 const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+const forgotError = document.getElementById('forgotError');
+
 if (forgotPasswordForm) {
     forgotPasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = e.target.querySelector('input[name="email"]').value.trim(); // ✅ corrigé
+        forgotError.textContent = ''; // reset message
 
-        if (!email) {
-            showToast('Remplissez tous les champs', 'error');
-            return;
-        }
-        if (!email.includes('@')) {
-            showToast('Email invalide', 'error');
+        const targetUsername = document.getElementById('targetUsername').value.trim();
+
+        if (!targetUsername) {
+            forgotError.textContent = 'Veuillez saisir le nom de l’utilisateur à réinitialiser';
             return;
         }
 
         try {
-            const res = await fetch(`${APP_URL_BACKEND}/api/forgot-password`, {
+            const res = await fetch(`${APP_URL_BACKEND}/api/admin-reset-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email })  // ✅ envoi correct
+                body: JSON.stringify({ targetUsername })
             });
+
             const data = await res.json();
             if (res.ok) {
+                showToast(`Un email de réinitialisation a été envoyé pour ${targetUsername} !`, "success");
                 conteneur.style.display = 'block';
                 forgotPasswordContainer.style.display = 'none';
                 resetPasswordContainer.style.display = 'none';
-                document.querySelector('.sign-in').style.display = 'flex';
-                document.querySelector('.sign-up').style.display = 'none';
-                showToast("Un email de réinitialisation a été envoyé !", "success");
             } else {
-                showToast(data.message || 'Erreur lors de la demande de réinitialisation', 'error');
+                forgotError.textContent = data.message || 'Erreur lors de la demande';
             }
         } catch {
-            showToast('Erreur lors de la demande de réinitialisation', 'error');
+            forgotError.textContent = 'Erreur lors de la demande';
         }
     });
 }
+
+
 
 // Formulaire de réinitialisation du mot de passe
 const resetPasswordForm = document.getElementById('resetPasswordForm');

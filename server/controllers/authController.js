@@ -16,30 +16,38 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Demande de réinitialisation
-exports.forgotPassword = (req, res) => {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: 'Email requis' });
+// Demande de réinitialisation par admin
+exports.adminResetPassword = (req, res) => {
+    const { adminEmail, targetEmail } = req.body;
 
-    connection.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+    // Vérifier que c’est bien l’admin
+    if (adminEmail !== 'alphiljunettem@gmail.com') {
+        return res.status(403).json({ message: 'Non autorisé : seul l’admin peut réinitialiser un mot de passe' });
+    }
+
+    // Chercher le compte cible
+    connection.query('SELECT * FROM users WHERE email = ?', [targetEmail], (err, results) => {
         if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
         if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
-        const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: '1h' });
+        const token = jwt.sign({ email: targetEmail }, SECRET_KEY, { expiresIn: '1h' });
         const resetLink = `${process.env.APP_URL_FRONTEND}/login.html?token=${token}`;
 
         transporter.sendMail({
-            from: process.env.SMTP_USER, // 🔹 corrige ici
-            to: email,
+            from: adminEmail,
+            to: targetEmail,
             subject: 'Réinitialisation de mot de passe',
-            html: `<p>Clique sur ce lien pour réinitialiser ton mot de passe :</p>
+            html: `<p>L’admin a réinitialisé votre mot de passe. Cliquez sur le lien pour définir un nouveau mot de passe :</p>
                    <a href="${resetLink}">${resetLink}</a>`
-        }, (mailErr, info) => {
+        }, (mailErr) => {
             if (mailErr) return res.status(500).json({ message: 'Erreur envoi email', error: mailErr });
-            res.json({ message: 'Email de réinitialisation envoyé !' });
+            console.log(`Admin ${adminEmail} a demandé la réinitialisation pour ${targetEmail}`);
+            res.json({ message: `Email de réinitialisation envoyé pour ${targetEmail}` });
         });
     });
 };
+
+
 
 // Réinitialisation mot de passe
 exports.resetPassword = (req, res) => {
@@ -49,14 +57,19 @@ exports.resetPassword = (req, res) => {
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) return res.status(400).json({ message: 'Token invalide ou expiré' });
 
-        const email = decoded.email;
+        const targetEmail = decoded.email; // compte à modifier
         const hashedPassword = bcrypt.hashSync(password, 10);
 
-        connection.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err2) => {
-            if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
-            // 🔥 Ici tu ajoutes ton log
-            console.log("✅ Mot de passe réinitialisé pour :", email);
-            res.json({ message: 'Mot de passe réinitialisé avec succès !' });
-        });
+        connection.query(
+            'UPDATE users SET password = ? WHERE email = ?',
+            [hashedPassword, targetEmail],
+            (err2) => {
+                if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+                console.log(`Mot de passe réinitialisé pour : ${targetEmail}`);
+                res.json({ message: `Mot de passe réinitialisé pour ${targetEmail}` });
+            }
+        );
     });
 };
+
+
