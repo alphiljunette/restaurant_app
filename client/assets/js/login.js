@@ -1,4 +1,9 @@
+const APP_URL_BACKEND = 'https://restaurant-api-d4x5.onrender.com';
+const APP_URL_FRONTEND = 'https://restaurant-app.vercel.app';
+
+
 // Function to display a toast
+
 function showToast(message, type = 'success') {
     const toastContainer = document.createElement('div');
     toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
@@ -167,7 +172,7 @@ if (signInForm) {
         }
 
         try {
-            const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/login', {
+            const res = await fetch(`${APP_URL_BACKEND}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -204,7 +209,7 @@ if (signUpForm) {
         }
 
         try {
-            const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/register', {
+            const res = await fetch(`${APP_URL_BACKEND}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
@@ -240,7 +245,7 @@ if (forgotPasswordForm) {
         }
 
         try {
-            const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/forgot-password', {
+            const res = await fetch(`${APP_URL_BACKEND}/api/forgot-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email })  // ✅ envoi correct
@@ -276,7 +281,7 @@ if (resetPasswordForm) {
         }
 
         try {
-            const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/reset-password', {
+            const res = await fetch(`${APP_URL_BACKEND}/api/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, password })
