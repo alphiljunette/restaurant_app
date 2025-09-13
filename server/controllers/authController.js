@@ -9,8 +9,8 @@ const SECRET_KEY = process.env.SECRET_KEY;
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
   }
 });
 
@@ -27,7 +27,8 @@ exports.forgotPassword = (req, res) => {
     if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
     const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: '1h' });
-    const resetLink = `https://ton-site.netlify.app/reset.html?token=${token}`;
+    const resetLink = `${process.env.APP_URL}/client/reset.html?token=${token}`;
+
 
     // Envoi email
     transporter.sendMail({
