@@ -54,6 +54,8 @@ exports.resetPassword = (req, res) => {
 
         connection.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err2) => {
             if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+            // 🔥 Ici tu ajoutes ton log
+            console.log("✅ Mot de passe réinitialisé pour :", email);
             res.json({ message: 'Mot de passe réinitialisé avec succès !' });
         });
     });
