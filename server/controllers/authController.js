@@ -26,7 +26,7 @@ exports.forgotPassword = (req, res) => {
         if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
         const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: '1h' });
-        const resetLink = `${process.env.APP_URL_FRONTEND}/?token=${token}`;
+        const resetLink = `${process.env.APP_URL_FRONTEND}/login.html?token=${token}`;
 
         transporter.sendMail({
             from: process.env.SMTP_USER, // 🔹 corrige ici
