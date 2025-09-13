@@ -235,7 +235,7 @@ const forgotError = document.getElementById('forgotError');
 if (forgotPasswordForm) {
     forgotPasswordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        forgotError.textContent = ''; // reset message
+        forgotError.textContent = '';
 
         const targetUsername = document.getElementById('targetUsername').value.trim();
 
@@ -246,17 +246,17 @@ if (forgotPasswordForm) {
 
         try {
             const res = await fetch(`${APP_URL_BACKEND}/api/admin-reset-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ targetUsername })
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    adminEmail: 'alphiljunettem@gmail.com',
+                    targetUsername: targetUsername
+                })
             });
 
             const data = await res.json();
             if (res.ok) {
-                showToast(`Un email de réinitialisation a été envoyé pour ${targetUsername} !`, "success");
-                conteneur.style.display = 'block';
-                forgotPasswordContainer.style.display = 'none';
-                resetPasswordContainer.style.display = 'none';
+                showToast(`Un email de réinitialisation a été envoyé pour ${targetUsername} !`, 'success');
             } else {
                 forgotError.textContent = data.message || 'Erreur lors de la demande';
             }
@@ -265,7 +265,6 @@ if (forgotPasswordForm) {
         }
     });
 }
-
 
 
 // Formulaire de réinitialisation du mot de passe

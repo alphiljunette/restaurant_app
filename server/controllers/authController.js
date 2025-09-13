@@ -18,33 +18,31 @@ const transporter = nodemailer.createTransport({
 
 // Demande de réinitialisation par admin
 exports.adminResetPassword = (req, res) => {
-    const { adminEmail, targetEmail } = req.body;
+    const { adminEmail, targetUsername } = req.body;
 
-    // Vérifier que c’est bien l’admin
     if (adminEmail !== 'alphiljunettem@gmail.com') {
         return res.status(403).json({ message: 'Non autorisé : seul l’admin peut réinitialiser un mot de passe' });
     }
 
-    // Chercher le compte cible
-    connection.query('SELECT * FROM users WHERE email = ?', [targetEmail], (err, results) => {
+    connection.query('SELECT * FROM users WHERE username = ?', [targetUsername], (err, results) => {
         if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
         if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
-        const token = jwt.sign({ email: targetEmail }, SECRET_KEY, { expiresIn: '1h' });
+        const token = jwt.sign({ email: results[0].email }, SECRET_KEY, { expiresIn: '1h' });
         const resetLink = `${process.env.APP_URL_FRONTEND}/login.html?token=${token}`;
 
         transporter.sendMail({
-            from: adminEmail,
-            to: targetEmail,
+            from: process.env.SMTP_USER,
+            to: adminEmail, // ou results[0].email si tu veux que le lien soit envoyé directement à l’utilisateur
             subject: 'Réinitialisation de mot de passe',
-            html: `<p>L’admin a réinitialisé votre mot de passe. Cliquez sur le lien pour définir un nouveau mot de passe :</p>
-                   <a href="${resetLink}">${resetLink}</a>`
+            html: `<p>Cliquez sur ce lien pour réinitialiser le mot de passe :</p>
+                  <a href="${resetLink}">${resetLink}</a>`
         }, (mailErr) => {
             if (mailErr) return res.status(500).json({ message: 'Erreur envoi email', error: mailErr });
-            console.log(`Admin ${adminEmail} a demandé la réinitialisation pour ${targetEmail}`);
-            res.json({ message: `Email de réinitialisation envoyé pour ${targetEmail}` });
+            res.json({ message: `Lien de réinitialisation envoyé pour ${targetUsername}` });
         });
     });
+
 };
 
 
