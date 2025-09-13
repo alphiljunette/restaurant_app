@@ -20,9 +20,10 @@ const transporter = nodemailer.createTransport({
 exports.adminResetPassword = (req, res) => {
     const { adminEmail, targetUsername } = req.body;
 
-    if (adminEmail !== 'alphiljunettem@gmail.com') {
-        return res.status(403).json({ message: 'Non autorisé : seul l’admin peut réinitialiser un mot de passe' });
-    }
+    if (adminEmail.trim().toLowerCase() !== 'alphiljunettem@gmail.com') {
+      return res.status(403).json({ message: 'Accès non autorisé'});
+  }
+
 
     connection.query('SELECT * FROM users WHERE username = ?', [targetUsername], (err, results) => {
         if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
@@ -33,7 +34,7 @@ exports.adminResetPassword = (req, res) => {
 
         transporter.sendMail({
             from: process.env.SMTP_USER,
-            to: adminEmail, // ou results[0].email si tu veux que le lien soit envoyé directement à l’utilisateur
+            to: results[0].email, // ou results[0].email si tu veux que le lien soit envoyé directement à l’utilisateur
             subject: 'Réinitialisation de mot de passe',
             html: `<p>Cliquez sur ce lien pour réinitialiser le mot de passe :</p>
                   <a href="${resetLink}">${resetLink}</a>`

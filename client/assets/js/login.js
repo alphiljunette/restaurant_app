@@ -246,13 +246,14 @@ if (forgotPasswordForm) {
 
         try {
             const res = await fetch(`${APP_URL_BACKEND}/api/admin-reset-password`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    adminEmail: 'alphiljunettem@gmail.com',
-                    targetUsername: targetUsername
-                })
-            });
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                adminEmail: 'alphiljunettem@gmail.com'.trim().toLowerCase(),
+                targetUsername: targetUsername.trim()
+            })
+        });
+
 
             const data = await res.json();
             if (res.ok) {
