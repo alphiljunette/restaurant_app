@@ -4,8 +4,9 @@
   "description": "Serveur pour le restaurant",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
