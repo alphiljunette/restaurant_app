@@ -9,7 +9,7 @@ const SECRET_KEY = process.env.SECRET_KEY;
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT),
-    secure: false, // TLS
+    secure: false,
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
@@ -18,35 +18,47 @@ const transporter = nodemailer.createTransport({
 
 // Demande de réinitialisation par admin
 exports.adminResetPassword = (req, res) => {
-    const { adminEmail, targetUsername } = req.body;
+    const { targetUsername } = req.body;
 
-    if (adminEmail.trim().toLowerCase() !== 'alphiljunettem@gmail.com') {
-      return res.status(403).json({ message: 'Accès non autorisé'});
-  }
+    if (!targetUsername) {
+        return res.status(400).json({ message: 'Le nom utilisateur est requis' });
+    }
 
-
-    connection.query('SELECT * FROM users WHERE username = ?', [targetUsername], (err, results) => {
+    // Vérifier si l’utilisateur existe
+    connection.query('SELECT * FROM users WHERE username = ?', [targetUsername], async (err, results) => {
         if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
         if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
-        const token = jwt.sign({ email: results[0].email }, SECRET_KEY, { expiresIn: '1h' });
-        const resetLink = `${process.env.APP_URL_FRONTEND}/login.html?token=${token}`;
+        try {
+            // Générer un mot de passe temporaire aléatoire
+            const newPassword = Math.random().toString(36).slice(-8);
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        transporter.sendMail({
-            from: process.env.SMTP_USER,
-            to: results[0].email, // ou results[0].email si tu veux que le lien soit envoyé directement à l’utilisateur
-            subject: 'Réinitialisation de mot de passe',
-            html: `<p>Cliquez sur ce lien pour réinitialiser le mot de passe :</p>
-                  <a href="${resetLink}">${resetLink}</a>`
-        }, (mailErr) => {
-            if (mailErr) return res.status(500).json({ message: 'Erreur envoi email', error: mailErr });
-            res.json({ message: `Lien de réinitialisation envoyé pour ${targetUsername}` });
-        });
+            // Mettre à jour en DB
+            connection.query(
+                'UPDATE users SET password = ? WHERE username = ?',
+                [hashedPassword, targetUsername],
+                async (err2) => {
+                    if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+
+                    // Envoyer un email uniquement à l’admin
+                    await transporter.sendMail({
+                        from: process.env.SMTP_USER,
+                        to: 'alphiljunettem@gmail.com', // UNIQUEMENT admin
+                        subject: 'Réinitialisation de mot de passe utilisateur',
+                        html: `<p>Le mot de passe de l’utilisateur <b>${targetUsername}</b> a été réinitialisé.</p>
+                               <p>Nouveau mot de passe : <b>${newPassword}</b></p>`
+                    });
+
+                    res.json({ message: `Mot de passe de ${targetUsername} réinitialisé et envoyé à l’admin` });
+                }
+            );
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ message: 'Erreur interne' });
+        }
     });
-
 };
-
-
 
 // Réinitialisation mot de passe
 exports.resetPassword = (req, res) => {
