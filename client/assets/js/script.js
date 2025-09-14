@@ -35,14 +35,22 @@ function showToast(message, type = 'success') {
 // Vérification token admin
 // -----------------------------
 window.addEventListener('load', () => {
+    console.log("🔹 Page chargée");
+
     const token = localStorage.getItem('adminToken');
-    if (!token) return redirectLogin();
+    console.log("Token récupéré:", token);
+
+    if (!token) {
+        console.warn("❌ Aucun token admin trouvé. Redirection vers login...");
+        return redirectLogin();
+    }
 
     try {
         const decoded = jwt_decode(token);
+        console.log("Token décodé:", decoded);
         document.getElementById('user-name').textContent = decoded?.username || 'Utilisateur';
     } catch (err) {
-        console.error('Erreur décodage token:', err);
+        console.error("❌ Erreur décodage token:", err);
         localStorage.removeItem('adminToken');
         return redirectLogin();
     }
@@ -50,15 +58,26 @@ window.addEventListener('load', () => {
     initAdminPage();
 });
 
+
 function redirectLogin() {
     window.location.href = 'login.html?t=' + Date.now();
 }
-function fetchPlats(categories) {
-    fetch(`${APP_URL_BACKEND}/api/plats/${categories}`)
-        .then(res => res.json())
-        .then(plats => afficherPlats(`${categories}-container`, plats))
-        .catch(err => console.error(err));
+async function fetchPlats(categories) {
+    console.log(`🔹 Récupération des plats pour la catégorie: ${categories}`);
+    try {
+        const res = await fetch(`${APP_URL_BACKEND}/api/plats/${categories}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        console.log("Status réponse fetchPlats:", res.status);
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        const plats = await res.json();
+        console.log("Plats reçus:", plats);
+        afficherPlats(`${categories}-container`, plats);
+    } catch (err) {
+        console.error("❌ Erreur fetchPlats:", err);
+    }
 }
+
 
 
 // -----------------------------
@@ -152,15 +171,32 @@ function initAdminPage() {
 // Initialisation Socket.IO après token vérifié
 // -----------------------------
 function initSocket() {
-    socket = io(`${APP_URL_BACKEND}`, {
-        auth: { token: localStorage.getItem('adminToken') || null }
+    console.log("🔹 Initialisation Socket.IO avec URL:", APP_URL_BACKEND);
+    socket = io(APP_URL_BACKEND, {
+    auth: { token: localStorage.getItem('adminToken') || null }
     });
 
-    // Nouvelle commande prête
+
+    socket.on('connect', () => {
+        console.log("✅ Socket connecté. ID:", socket.id);
+    });
+
+    socket.on('connect_error', (err) => {
+        console.error("❌ Erreur Socket.IO:", err.message);
+    });
+
+    // Exemple pour nouvelles commandes
     socket.on('order-ready', (data) => {
+        console.log("📩 Nouvelle commande reçue:", data);
         showToast(`Nouvelle commande pour la table ${data.table_id}`);
         loadCommandes();
     });
+
+    // Nouvelle commande prête
+    // socket.on('order-ready', (data) => {
+    //     showToast(`Nouvelle commande pour la table ${data.table_id}`);
+    //     loadCommandes();
+    // });
 
     // Rappel commande
     socket.on('order-ready-reminder', (data) => {
