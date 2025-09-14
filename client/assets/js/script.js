@@ -1,10 +1,9 @@
-const socket = io('https://restaurant-api-d4x5.onrender.com', {
-    auth: { token: localStorage.getItem('adminToken') || null }
-});
-
+let socket;
 let currentCategorieSlug = 'entrees';
 
-// Affichage d'un toast
+// -----------------------------
+// Toast
+// -----------------------------
 function showToast(message, type = 'success') {
     const toastContainer = document.createElement('div');
     toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
@@ -29,27 +28,38 @@ function showToast(message, type = 'success') {
     toast.addEventListener('hidden.bs.toast', () => toastContainer.remove());
 }
 
-// Initialisation au chargement de la page
+// -----------------------------
+// Vérification token admin
+// -----------------------------
 window.addEventListener('load', () => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return redirectLogin();
+
+    try {
+        const decoded = jwt_decode(token);
+        document.getElementById('user-name').textContent = decoded?.username || 'Utilisateur';
+    } catch (err) {
+        console.error('Erreur décodage token:', err);
+        localStorage.removeItem('adminToken');
+        return redirectLogin();
+    }
+
+    initAdminPage();
+});
+
+function redirectLogin() {
+    window.location.href = 'login.html?t=' + Date.now();
+}
+
+// -----------------------------
+// Initialisation page admin
+// -----------------------------
+function initAdminPage() {
     document.documentElement.lang = 'fr';
     document.title = 'Gestion des Plats - Admin';
 
-    // Affichage du nom utilisateur
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-        try {
-            const decoded = jwt_decode(token);
-            document.getElementById('user-name').textContent = decoded?.username || 'Utilisateur';
-        } catch (err) {
-            console.error('Erreur décodage token:', err);
-            showToast('Erreur décodage token', 'error');
-        }
-    }
-
-    // Charger plats pour toutes les catégories
     ['entrees', 'plats', 'desserts', 'boissons', 'plats-jour'].forEach(categorie => afficherPlats(categorie));
 
-    // Dropdown commandes
     document.getElementById('view-orders').addEventListener('click', () => {
         loadCommandes();
         new bootstrap.Modal(document.getElementById('ordersModal')).show();
@@ -60,22 +70,123 @@ window.addEventListener('load', () => {
         new bootstrap.Modal(document.getElementById('historyModal')).show();
     });
 
-    // QR code modal
     document.getElementById('generate-qr-button').addEventListener('click', () => {
         new bootstrap.Modal(document.getElementById('qrcodeModal')).show();
         loadExistingQRCodes();
     });
 
-    // Déconnexion
     document.getElementById('logout').addEventListener('click', () => {
         localStorage.removeItem('adminToken');
         document.getElementById('user-name').textContent = '';
-        window.location.href = 'login.html?t=' + Date.now();
+        redirectLogin();
     });
 
-    // Génération QR code
     document.getElementById('generate-qr').addEventListener('click', generateQRCodeHandler);
-});
+
+    initSocket(); // Tranche suivante gère socket.io
+}
+// -----------------------------
+// Initialisation Socket.IO après token vérifié
+// -----------------------------
+function initSocket() {
+    socket = io('https://restaurant-api-d4x5.onrender.com', {
+        auth: { token: localStorage.getItem('adminToken') || null }
+    });
+
+    // Nouvelle commande prête
+    socket.on('order-ready', (data) => {
+        showToast(`Nouvelle commande pour la table ${data.table_id}`);
+        loadCommandes();
+    });
+
+    // Rappel commande
+    socket.on('order-ready-reminder', (data) => {
+        showToast(`Rappel de commande pour la table ${data.table_id}`, 'warning');
+        loadCommandes();
+    });
+
+    // Données client supprimées
+    socket.on('client-data-deleted', ({ table_id }) => {
+        showToast(`Données du client pour la table ${table_id} supprimées`, 'info');
+    });
+
+    // Plat mis à jour
+    socket.on('platUpdated', (data) => {
+        afficherPlats(data.categorie);
+    });
+
+    // Statut commande mis à jour
+    socket.on('commandeStatusUpdated', () => {
+        loadCommandes();
+    });
+}
+
+// -----------------------------
+// Notifications avec commentaire
+// -----------------------------
+function showNotificationPrompt(commandeId, tableId) {
+    const modalHtml = `
+        <div class="modal fade" id="notifyModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Envoyer une notification</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="notificationMessage" class="form-label">Message :</label>
+                        <textarea class="form-control" id="notificationMessage" placeholder="Entrez votre message..." rows="3"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="sendNotificationBtn">Envoyer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const notifyModalEl = document.getElementById('notifyModal');
+    const bsModal = new bootstrap.Modal(notifyModalEl);
+    bsModal.show();
+
+    document.getElementById('sendNotificationBtn').onclick = async () => {
+        const message = document.getElementById('notificationMessage').value.trim();
+        if (!message) return showToast('Veuillez entrer un message', 'error');
+
+        try {
+            const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/notify-unavailable/${commandeId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                },
+                body: JSON.stringify({ message, table_id: tableId })
+            });
+            if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+
+            showToast('Notification envoyée avec succès');
+            bsModal.hide();
+            notifyModalEl.remove();
+        } catch (err) {
+            console.error('Erreur envoi notification:', err);
+            showToast('Erreur envoi notification', 'error');
+        }
+    };
+
+    notifyModalEl.addEventListener('hidden.bs.modal', () => {
+        notifyModalEl.remove();
+    });
+}
+
+function notifyUnavailable(commandeId, tableId) {
+    showNotificationPrompt(commandeId, tableId);
+}
+
+// -----------------------------
+// Charger les QR codes existants
+// -----------------------------
 async function loadExistingQRCodes() {
     const tableBody = document.getElementById('qrcode-table-body');
     tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Chargement...</td></tr>';
@@ -112,6 +223,9 @@ async function loadExistingQRCodes() {
     }
 }
 
+// -----------------------------
+// Télécharger un QR code
+// -----------------------------
 function downloadQRCode(url, tableNumber) {
     const a = document.createElement('a');
     a.href = url;
@@ -121,6 +235,9 @@ function downloadQRCode(url, tableNumber) {
     document.body.removeChild(a);
 }
 
+// -----------------------------
+// Supprimer un QR code
+// -----------------------------
 async function deleteQRCode(id, tableNumber) {
     if (!confirm(`Supprimer QR code table ${tableNumber} ?`)) return;
     try {
@@ -137,6 +254,9 @@ async function deleteQRCode(id, tableNumber) {
     }
 }
 
+// -----------------------------
+// Générer un QR code
+// -----------------------------
 async function generateQRCodeHandler() {
     const tableNumber = document.getElementById('table-number').value;
     if (!tableNumber) {
@@ -158,75 +278,7 @@ async function generateQRCodeHandler() {
         showToast('Erreur génération QR code', 'error');
     }
 }
-// -----------------------------
-// Notification avec commentaire
-// -----------------------------
-function showNotificationPrompt(commandeId, tableId) {
-    // Créer un modal dynamique pour le commentaire
-    const modalHtml = `
-        <div class="modal fade" id="notifyModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Envoyer une notification</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <label for="notificationMessage" class="form-label">Message :</label>
-                        <textarea class="form-control" id="notificationMessage" placeholder="Entrez votre message..." rows="3"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="button" class="btn btn-primary" id="sendNotificationBtn">Envoyer</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-    const notifyModalEl = document.getElementById('notifyModal');
-    const bsModal = new bootstrap.Modal(notifyModalEl);
-    bsModal.show();
-
-    // Gestion du bouton envoyer
-    document.getElementById('sendNotificationBtn').onclick = async () => {
-        const message = document.getElementById('notificationMessage').value.trim();
-        if (!message) {
-            showToast('Veuillez entrer un message', 'error');
-            return;
-        }
-
-        try {
-            const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/notify-unavailable/${commandeId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-                },
-                body: JSON.stringify({ message, table_id: tableId })
-            });
-            if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-
-            showToast('Notification envoyée avec succès');
-            bsModal.hide();
-            notifyModalEl.remove();
-        } catch (err) {
-            console.error('Erreur envoi notification:', err);
-            showToast('Erreur envoi notification', 'error');
-        }
-    };
-
-    // Nettoyer le modal après fermeture
-    notifyModalEl.addEventListener('hidden.bs.modal', () => {
-        notifyModalEl.remove();
-    });
-}
-
-// Remplacer le bouton "Envoyer notification" dans les commandes
-function notifyUnavailable(commandeId, tableId) {
-    showNotificationPrompt(commandeId, tableId);
-}
 // -----------------------------
 // Charger les commandes pour le modal
 // -----------------------------
@@ -239,7 +291,7 @@ async function loadCommandes() {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) {
-            if (res.status === 401) { // Token invalide
+            if (res.status === 401) {
                 localStorage.removeItem('adminToken');
                 document.getElementById('user-name').textContent = '';
                 window.location.href = 'login.html?t=' + Date.now();
@@ -359,14 +411,157 @@ async function loadHistory() {
         showToast('Erreur chargement historique', 'error');
     }
 }
+// -----------------------------
+// Mettre à jour le statut d'une commande
+// -----------------------------
+async function updateOrderStatus(commandeId, status) {
+    try {
+        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/commande/${commandeId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify({ status })
+        });
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        showToast('Statut de commande mis à jour');
+        loadCommandes();
+    } catch (err) {
+        console.error('Erreur mise à jour commande:', err);
+        showToast('Erreur mise à jour commande', 'error');
+    }
+}
 
 // -----------------------------
-// Socket.IO temps réel
+// Afficher les plats selon catégorie
 // -----------------------------
-socket.on('platUpdated', (data) => {
-    afficherPlats(data.categorie);
+async function afficherPlats(categorie) {
+    const container = document.getElementById(`${categorie}-container`);
+    if (!container) return;
+
+    container.innerHTML = '<p>Chargement...</p>';
+
+    try {
+        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/plats/${categorie}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        const plats = await res.json();
+
+        container.innerHTML = '';
+        if (plats.length === 0) {
+            container.innerHTML = '<p>Aucun plat disponible</p>';
+            return;
+        }
+
+        plats.forEach(plat => {
+            const platDiv = document.createElement('div');
+            platDiv.className = 'card mb-2';
+            platDiv.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">${plat.nom}</h5>
+                    <p class="card-text">${plat.description}</p>
+                    <p><strong>Prix :</strong> ${plat.prix} Ar</p>
+                    <button class="btn btn-sm btn-primary" onclick="editPlat(${plat.id}, '${categorie}')">Modifier</button>
+                    <button class="btn btn-sm btn-danger" onclick="deletePlat(${plat.id}, '${categorie}')">Supprimer</button>
+                </div>
+            `;
+            container.appendChild(platDiv);
+        });
+    } catch (err) {
+        console.error(`Erreur chargement plats (${categorie}):`, err);
+        container.innerHTML = `<p class="text-danger">Erreur chargement plats</p>`;
+        showToast(`Erreur chargement plats (${categorie})`, 'error');
+    }
+}
+
+// -----------------------------
+// Supprimer un plat
+// -----------------------------
+async function deletePlat(id, categorie) {
+    if (!confirm(`Supprimer ce plat ?`)) return;
+    try {
+        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/plat/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        showToast('Plat supprimé avec succès');
+        afficherPlats(categorie);
+    } catch (err) {
+        console.error('Erreur suppression plat:', err);
+        showToast('Erreur suppression plat', 'error');
+    }
+}
+
+// -----------------------------
+// Modifier un plat (pré-remplir le formulaire)
+// -----------------------------
+function editPlat(id, categorie) {
+    // Récupérer le plat depuis le serveur ou le DOM
+    fetch(`https://restaurant-api-d4x5.onrender.com/api/plat/${id}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+    })
+    .then(res => res.json())
+    .then(plat => {
+        document.getElementById('editId').value = plat.id;
+        document.getElementById('editNom').value = plat.nom;
+        document.getElementById('editDescription').value = plat.description;
+        document.getElementById('editPrix').value = plat.prix;
+        document.getElementById('editCategorie').value = categorie;
+        new bootstrap.Modal(document.getElementById('editPlatModal')).show();
+    })
+    .catch(err => {
+        console.error('Erreur récupération plat:', err);
+        showToast('Erreur récupération plat', 'error');
+    });
+}
+
+// -----------------------------
+// Sauvegarder modifications plat
+// -----------------------------
+document.getElementById('editPlatForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editId').value;
+    const nom = document.getElementById('editNom').value.trim();
+    const description = document.getElementById('editDescription').value.trim();
+    const prix = parseFloat(document.getElementById('editPrix').value);
+    const categorie = document.getElementById('editCategorie').value;
+
+    if (!nom || !description || isNaN(prix)) {
+        showToast('Veuillez remplir tous les champs correctement', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/plat/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify({ nom, description, prix, categorie })
+        });
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        showToast('Plat mis à jour avec succès');
+        new bootstrap.Modal(document.getElementById('editPlatModal')).hide();
+        afficherPlats(categorie);
+    } catch (err) {
+        console.error('Erreur mise à jour plat:', err);
+        showToast('Erreur mise à jour plat', 'error');
+    }
 });
 
-socket.on('commandeStatusUpdated', () => {
-    loadCommandes();
-});
+// -----------------------------
+// Changer catégorie active
+// -----------------------------
+function changeCategorie(slug) {
+    currentCategorieSlug = slug;
+    ['entrees','plats','desserts','boissons','plats-jour'].forEach(c => {
+        document.getElementById(`${c}-tab`).classList.remove('active');
+        document.getElementById(`${c}-container`).classList.add('d-none');
+    });
+    document.getElementById(`${slug}-tab`).classList.add('active');
+    document.getElementById(`${slug}-container`).classList.remove('d-none');
+}
