@@ -1,5 +1,6 @@
 let socket;
 let currentCategorieSlug = 'entrees';
+const APP_URL_BACKEND = window.APP_URL_BACKEND;
 
 // -----------------------------
 // Toast
@@ -350,7 +351,7 @@ async function loadCommandes() {
     ordersList.innerHTML = `<p>Chargement...</p>`;
 
     try {
-        const res = await fetch('${APP_URL_BACKEND}/api/commandes', {
+        const res = await fetch(`${APP_URL_BACKEND}/api/commandes`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) {
