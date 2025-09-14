@@ -50,6 +50,17 @@ window.addEventListener('load', () => {
 function redirectLogin() {
     window.location.href = 'login.html?t=' + Date.now();
 }
+function fetchPlats(categorie) {
+    fetch(`${APP_URL_BACKEND}/api/plats`)  // changer en prod si besoin
+        .then(res => res.json())
+        .then(data => {
+            const platsCat = data.filter(plat => plat.categorie === categorie);
+            afficherPlats(`${categorie}-container`, platsCat);
+        })
+        .catch(err => console.error(err));
+}
+
+
 // -----------------------------
 // Afficher les plats selon catégorie
 // -----------------------------
@@ -60,7 +71,7 @@ async function afficherPlats(categorie) {
     container.innerHTML = '<p>Chargement...</p>';
 
     try {
-        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/plats/${categorie}`, {
+        const res = await fetch(`${APP_URL_BACKEND}/api/plats/${categorie}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
@@ -97,6 +108,12 @@ async function afficherPlats(categorie) {
 // Initialisation page admin
 // -----------------------------
 function initAdminPage() {
+    // fetchPlats('entrees');
+    // fetchPlats('plats');
+    // fetchPlats('desserts');
+    // fetchPlats('boissons');
+    // fetchPlats('plats-jour');
+
     document.documentElement.lang = 'fr';
     document.title = 'Gestion des Plats - Admin';
 
@@ -131,7 +148,7 @@ function initAdminPage() {
 // Initialisation Socket.IO après token vérifié
 // -----------------------------
 function initSocket() {
-    socket = io('https://restaurant-api-d4x5.onrender.com', {
+    socket = io('${APP_URL_BACKEND}', {
         auth: { token: localStorage.getItem('adminToken') || null }
     });
 
@@ -198,7 +215,7 @@ function showNotificationPrompt(commandeId, tableId) {
         if (!message) return showToast('Veuillez entrer un message', 'error');
 
         try {
-            const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/notify-unavailable/${commandeId}`, {
+            const res = await fetch(`${APP_URL_BACKEND}/api/notify-unavailable/${commandeId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -234,7 +251,7 @@ async function loadExistingQRCodes() {
     tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Chargement...</td></tr>';
     
     try {
-        const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/qrcodes', {
+        const res = await fetch('${APP_URL_BACKEND}/api/qrcodes', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
@@ -283,7 +300,7 @@ function downloadQRCode(url, tableNumber) {
 async function deleteQRCode(id, tableNumber) {
     if (!confirm(`Supprimer QR code table ${tableNumber} ?`)) return;
     try {
-        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/qrcode/${id}`, {
+        const res = await fetch(`${APP_URL_BACKEND}/api/qrcode/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
@@ -306,7 +323,7 @@ async function generateQRCodeHandler() {
         return;
     }
     try {
-        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/qrcode/${tableNumber}`, {
+        const res = await fetch(`${APP_URL_BACKEND}/api/qrcode/${tableNumber}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
@@ -329,7 +346,7 @@ async function loadCommandes() {
     ordersList.innerHTML = `<p>Chargement...</p>`;
 
     try {
-        const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/commandes', {
+        const res = await fetch('${APP_URL_BACKEND}/api/commandes', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) {
@@ -407,7 +424,7 @@ async function loadHistory() {
     historyList.innerHTML = `<p>Chargement...</p>`;
 
     try {
-        const res = await fetch('https://restaurant-api-d4x5.onrender.com/api/historique_commandes', {
+        const res = await fetch('${APP_URL_BACKEND}/api/historique_commandes', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
@@ -458,7 +475,7 @@ async function loadHistory() {
 // -----------------------------
 async function updateOrderStatus(commandeId, status) {
     try {
-        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/commande/${commandeId}/status`, {
+        const res = await fetch(`${APP_URL_BACKEND}/api/commande/${commandeId}/status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -482,7 +499,7 @@ async function updateOrderStatus(commandeId, status) {
 async function deletePlat(id, categorie) {
     if (!confirm(`Supprimer ce plat ?`)) return;
     try {
-        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/plat/${id}`, {
+        const res = await fetch(`${APP_URL_BACKEND}/api/plats/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
@@ -500,7 +517,7 @@ async function deletePlat(id, categorie) {
 // -----------------------------
 function editPlat(id, categorie) {
     // Récupérer le plat depuis le serveur ou le DOM
-    fetch(`https://restaurant-api-d4x5.onrender.com/api/plat/${id}`, {
+    fetch(`${APP_URL_BACKEND}/api/plats/${id}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
     })
     .then(res => res.json())
@@ -535,7 +552,7 @@ document.getElementById('editPlatForm').addEventListener('submit', async (e) => 
     }
 
     try {
-        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/plat/${id}`, {
+        const res = await fetch(`${APP_URL_BACKEND}/api/plats/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

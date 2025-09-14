@@ -146,12 +146,14 @@ app.delete('/api/plats/:id', authenticateToken, (req, res) => {
     });
 });
 
-app.get('/api/plats', (req, res) => {
-    connection.query('SELECT * FROM plats', (err, results) => {
+app.get('/api/plats/:categorie', (req, res) => {
+    const categorie = req.params.categorie;
+    connection.query('SELECT * FROM plats WHERE categorie=?', [categorie], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });
 });
+
 
 /* ------------------------ ROUTES QR CODE ------------------------ */
 app.get('/api/qrcode/:table', async (req, res) => {
@@ -162,7 +164,7 @@ app.get('/api/qrcode/:table', async (req, res) => {
         res.sendFile(qrPath);
     } else {
         try {
-            await QRCode.toFile(qrPath, `http://localhost:${PORT}/client?table=${tableId}`);
+            await QRCode.toFile(qrPath, `${APP_URL_FRONTEND}/client?table=${tableId}`);
             res.sendFile(qrPath);
         } catch (err) {
             res.status(500).json({ error: err.message });
