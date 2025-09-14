@@ -64,18 +64,21 @@ function fetchPlats(categorie) {
 // -----------------------------
 // Afficher les plats selon catégorie
 // -----------------------------
-async function afficherPlats(categorie) {
+async function afficherPlats(categorie, plats = null) {
     const container = document.getElementById(`${categorie}-container`);
     if (!container) return;
 
     container.innerHTML = '<p>Chargement...</p>';
 
     try {
-        const res = await fetch(`${APP_URL_BACKEND}/api/plats/${categorie}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-        });
-        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-        const plats = await res.json();
+        // Si plats déjà fournis → pas besoin de fetch
+        if (!plats) {
+            const res = await fetch(`${APP_URL_BACKEND}/api/plats/${categorie}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+            });
+            if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+            plats = await res.json();
+        }
 
         container.innerHTML = '';
         if (plats.length === 0) {
@@ -103,6 +106,7 @@ async function afficherPlats(categorie) {
         showToast(`Erreur chargement plats (${categorie})`, 'error');
     }
 }
+
 
 // -----------------------------
 // Initialisation page admin
