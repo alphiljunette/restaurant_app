@@ -25,40 +25,31 @@ exports.adminResetPassword = (req, res) => {
     }
 
     // Vérifier si l’utilisateur existe
-    connection.query('SELECT * FROM users WHERE username = ?', [targetUsername], async (err, results) => {
+    connection.query('SELECT * FROM users WHERE username = ?', [targetUsername], (err, results) => {
         if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
         if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
-        try {
-            // Générer un mot de passe temporaire aléatoire
-            const newPassword = Math.random().toString(36).slice(-8);
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
+        // Créer un token JWT avec email ou username
+        const token = jwt.sign({ username: targetUsername }, SECRET_KEY, { expiresIn: '1h' });
 
-            // Mettre à jour en DB
-            connection.query(
-                'UPDATE users SET password = ? WHERE username = ?',
-                [hashedPassword, targetUsername],
-                async (err2) => {
-                    if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
+        // Lien de réinitialisation
+        const resetLink = `${process.env.APP_URL_FRONTEND}/login.html?token=${token}`;
 
-                    // Envoyer un email uniquement à l’admin
-                    await transporter.sendMail({
-                        from: process.env.SMTP_USER,
-                        to: 'alphiljunettem@gmail.com', // UNIQUEMENT admin
-                        subject: 'Réinitialisation de mot de passe utilisateur',
-                        html: `<p>Le mot de passe de l’utilisateur <b>${targetUsername}</b> a été réinitialisé.</p>
-                               <p>Nouveau mot de passe : <b>${newPassword}</b></p>`
-                    });
-
-                    res.json({ message: `Mot de passe de ${targetUsername} réinitialisé et envoyé à l’admin` });
-                }
-            );
-        } catch (e) {
-            console.error(e);
-            res.status(500).json({ message: 'Erreur interne' });
-        }
+        // Envoyer le lien UNIQUEMENT à l’admin
+        transporter.sendMail({
+            from: process.env.SMTP_USER,
+            to: 'alphiljunettem@gmail.com',
+            subject: `Réinitialisation mot de passe pour ${targetUsername}`,
+            html: `<p>L’utilisateur <b>${targetUsername}</b> a demandé une réinitialisation de mot de passe.</p>
+                   <p>Cliquez sur ce lien pour définir un nouveau mot de passe :</p>
+                   <a href="${resetLink}">${resetLink}</a>`
+        }, (mailErr) => {
+            if (mailErr) return res.status(500).json({ message: 'Erreur envoi email', error: mailErr });
+            res.json({ message: `Lien de réinitialisation envoyé à l’admin pour ${targetUsername}` });
+        });
     });
 };
+
 
 // Réinitialisation mot de passe
 exports.resetPassword = (req, res) => {
