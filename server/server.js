@@ -32,7 +32,10 @@ const qrCodesDir = path.join(uploadsDir, 'qrcodes');
 if (!fs.existsSync(qrCodesDir)) fs.mkdirSync(qrCodesDir, { recursive: true });
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+    origin: ['https://restaurant-bal8nmlnn-alphiljunettes-projects.vercel.app'],
+    credentials: true
+}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../client')));
 app.use('/uploads', express.static(uploadsDir));
