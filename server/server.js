@@ -108,11 +108,11 @@ function authenticateToken(req, res, next) {
 
 /* ------------------------ ROUTES PLATS ------------------------ */
 app.post('/api/plats', authenticateToken, upload.single('image'), (req, res) => {
-    const { nom, description, prix, categorie } = req.body;
+    const { nom, description, prix, categories } = req.body;
     const image = req.file ? req.file.filename : null;
     connection.query(
-        'INSERT INTO plats (nom, description, prix, categorie, image) VALUES (?, ?, ?, ?, ?)',
-        [nom, description, prix, categorie, image],
+        'INSERT INTO plats (nom, description, prix, categories, image) VALUES (?, ?, ?, ?, ?)',
+        [nom, description, prix, categories, image],
         (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true, id: result.insertId });
@@ -122,15 +122,15 @@ app.post('/api/plats', authenticateToken, upload.single('image'), (req, res) => 
 
 app.put('/api/plats/:id', authenticateToken, upload.single('image'), (req, res) => {
     const { id } = req.params;
-    const { nom, description, prix, categorie } = req.body;
+    const { nom, description, prix, categories } = req.body;
     const image = req.file ? req.file.filename : null;
 
     const query = image
-        ? 'UPDATE plats SET nom=?, description=?, prix=?, categorie=?, image=? WHERE id=?'
-        : 'UPDATE plats SET nom=?, description=?, prix=?, categorie=? WHERE id=?';
+        ? 'UPDATE plats SET nom=?, description=?, prix=?, categories=?, image=? WHERE id=?'
+        : 'UPDATE plats SET nom=?, description=?, prix=?, categories=? WHERE id=?';
     const params = image
-        ? [nom, description, prix, categorie, image, id]
-        : [nom, description, prix, categorie, id];
+        ? [nom, description, prix, categories, image, id]
+        : [nom, description, prix, categories, id];
 
     connection.query(query, params, (err) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -146,9 +146,9 @@ app.delete('/api/plats/:id', authenticateToken, (req, res) => {
     });
 });
 
-app.get('/api/plats/:categorie', (req, res) => {
-    const categorie = req.params.categorie;
-    connection.query('SELECT * FROM plats WHERE categorie=?', [categorie], (err, results) => {
+app.get('/api/plats/:categories', (req, res) => {
+    const categories = req.params.categories;
+    connection.query('SELECT * FROM plats WHERE categories=?', [categories], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });

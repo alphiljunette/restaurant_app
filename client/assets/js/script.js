@@ -1,7 +1,9 @@
 let socket;
 let currentCategorieSlug = 'entrees';
 const APP_URL_BACKEND = window.APP_URL_BACKEND;
-
+// Vérification que toutes les fonctions sont définies
+console.log('afficherPlats defined:', typeof afficherPlats);
+console.log('initAdminPage defined:', typeof initAdminPage);
 // -----------------------------
 // Toast
 // -----------------------------
@@ -51,10 +53,10 @@ window.addEventListener('load', () => {
 function redirectLogin() {
     window.location.href = 'login.html?t=' + Date.now();
 }
-function fetchPlats(categorie) {
-    fetch(`${APP_URL_BACKEND}/api/plats/${categorie}`)
+function fetchPlats(categories) {
+    fetch(`${APP_URL_BACKEND}/api/plats/${categories}`)
         .then(res => res.json())
-        .then(plats => afficherPlats(`${categorie}-container`, plats))
+        .then(plats => afficherPlats(`${categories}-container`, plats))
         .catch(err => console.error(err));
 }
 
@@ -62,8 +64,8 @@ function fetchPlats(categorie) {
 // -----------------------------
 // Afficher les plats selon catégorie
 // -----------------------------
-async function afficherPlats(categorie, plats = null) {
-    const containerId = categorie.includes('-container') ? categorie : `${categorie}-container`;
+async function afficherPlats(categories, plats = null) {
+    const containerId = categories.includes('-container') ? categories : `${categories}-container`;
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -72,7 +74,7 @@ async function afficherPlats(categorie, plats = null) {
     try {
         // Si plats déjà fournis → pas besoin de fetch
         if (!plats) {
-            const res = await fetch(`${APP_URL_BACKEND}/api/plats/${categorie}`, {
+            const res = await fetch(`${APP_URL_BACKEND}/api/plats/${categories}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
             });
             if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
@@ -93,16 +95,16 @@ async function afficherPlats(categorie, plats = null) {
                     <h5 class="card-title">${plat.nom}</h5>
                     <p class="card-text">${plat.description}</p>
                     <p><strong>Prix :</strong> ${plat.prix} Ar</p>
-                    <button class="btn btn-sm btn-primary" onclick="editPlat(${plat.id}, '${categorie}')">Modifier</button>
-                    <button class="btn btn-sm btn-danger" onclick="deletePlat(${plat.id}, '${categorie}')">Supprimer</button>
+                    <button class="btn btn-sm btn-primary" onclick="editPlat(${plat.id}, '${categories}')">Modifier</button>
+                    <button class="btn btn-sm btn-danger" onclick="deletePlat(${plat.id}, '${categories}')">Supprimer</button>
                 </div>
             `;
             container.appendChild(platDiv);
         });
     } catch (err) {
-        console.error(`Erreur chargement plats (${categorie}):`, err);
+        console.error(`Erreur chargement plats (${categories}):`, err);
         container.innerHTML = `<p class="text-danger">Erreur chargement plats</p>`;
-        showToast(`Erreur chargement plats (${categorie})`, 'error');
+        showToast(`Erreur chargement plats (${categories})`, 'error');
     }
 }
 
@@ -120,7 +122,7 @@ function initAdminPage() {
     document.documentElement.lang = 'fr';
     document.title = 'Gestion des Plats - Admin';
 
-    ['entrees', 'plats', 'desserts', 'boissons', 'plats-jour'].forEach(categorie => afficherPlats(categorie));
+    ['entrees', 'plats', 'desserts', 'boissons', 'plats-jour'].forEach(categories => afficherPlats(categories));
     document.getElementById('view-orders').addEventListener('click', () => {
         loadCommandes();
         new bootstrap.Modal(document.getElementById('ordersModal')).show();
@@ -173,7 +175,7 @@ function initSocket() {
 
     // Plat mis à jour
     socket.on('platUpdated', (data) => {
-        afficherPlats(data.categorie);
+        afficherPlats(data.categories);
     });
 
     // Statut commande mis à jour
@@ -498,7 +500,7 @@ async function updateOrderStatus(commandeId, status) {
 // -----------------------------
 // Supprimer un plat
 // -----------------------------
-async function deletePlat(id, categorie) {
+async function deletePlat(id, categories) {
     if (!confirm(`Supprimer ce plat ?`)) return;
     try {
         const res = await fetch(`${APP_URL_BACKEND}/api/plats/${id}`, {
@@ -507,7 +509,7 @@ async function deletePlat(id, categorie) {
         });
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
         showToast('Plat supprimé avec succès');
-        afficherPlats(categorie);
+        afficherPlats(categories);
     } catch (err) {
         console.error('Erreur suppression plat:', err);
         showToast('Erreur suppression plat', 'error');
@@ -517,7 +519,7 @@ async function deletePlat(id, categorie) {
 // -----------------------------
 // Modifier un plat (pré-remplir le formulaire)
 // -----------------------------
-function editPlat(id, categorie) {
+function editPlat(id, categories) {
     // Récupérer le plat depuis le serveur ou le DOM
     fetch(`${APP_URL_BACKEND}/api/plats/${id}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
@@ -528,7 +530,7 @@ function editPlat(id, categorie) {
         document.getElementById('editNom').value = plat.nom;
         document.getElementById('editDescription').value = plat.description;
         document.getElementById('editPrix').value = plat.prix;
-        document.getElementById('editCategorie').value = categorie;
+        document.getElementById('editCategorie').value = categories;
         new bootstrap.Modal(document.getElementById('editPlatModal')).show();
     })
     .catch(err => {
@@ -546,7 +548,7 @@ document.getElementById('editPlatForm').addEventListener('submit', async (e) => 
     const nom = document.getElementById('editNom').value.trim();
     const description = document.getElementById('editDescription').value.trim();
     const prix = parseFloat(document.getElementById('editPrix').value);
-    const categorie = document.getElementById('editCategorie').value;
+    const categories = document.getElementById('editCategorie').value;
 
     if (!nom || !description || isNaN(prix)) {
         showToast('Veuillez remplir tous les champs correctement', 'error');
@@ -560,12 +562,12 @@ document.getElementById('editPlatForm').addEventListener('submit', async (e) => 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             },
-            body: JSON.stringify({ nom, description, prix, categorie })
+            body: JSON.stringify({ nom, description, prix, categories })
         });
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
         showToast('Plat mis à jour avec succès');
         new bootstrap.Modal(document.getElementById('editPlatModal')).hide();
-        afficherPlats(categorie);
+        afficherPlats(categories);
     } catch (err) {
         console.error('Erreur mise à jour plat:', err);
         showToast('Erreur mise à jour plat', 'error');
