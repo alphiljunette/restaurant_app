@@ -29,7 +29,7 @@ exports.adminResetPassword = (req, res) => {
         if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
         if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
-        // Créer un token JWT avec email ou username
+        // Créer un token JWT avec username
         const token = jwt.sign({ username: targetUsername }, SECRET_KEY, { expiresIn: '1h' });
 
         // Lien de réinitialisation
@@ -50,7 +50,6 @@ exports.adminResetPassword = (req, res) => {
     });
 };
 
-
 // Réinitialisation mot de passe
 exports.resetPassword = (req, res) => {
     const { token, password } = req.body;
@@ -59,19 +58,49 @@ exports.resetPassword = (req, res) => {
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) return res.status(400).json({ message: 'Token invalide ou expiré' });
 
-        const targetEmail = decoded.email; // compte à modifier
+        const targetUsername = decoded.username; // on récupère bien le username du token
         const hashedPassword = bcrypt.hashSync(password, 10);
 
         connection.query(
-            'UPDATE users SET password = ? WHERE email = ?',
-            [hashedPassword, targetEmail],
-            (err2) => {
+            'UPDATE users SET password = ? WHERE username = ?',
+            [hashedPassword, targetUsername],
+            (err2, result) => {
                 if (err2) return res.status(500).json({ message: 'Erreur serveur', error: err2 });
-                console.log(`Mot de passe réinitialisé pour : ${targetEmail}`);
-                res.json({ message: `Mot de passe réinitialisé pour ${targetEmail}` });
+                if (result.affectedRows === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+                console.log(`Mot de passe réinitialisé pour : ${targetUsername}`);
+                res.json({ message: `Mot de passe réinitialisé pour ${targetUsername}` });
             }
         );
     });
 };
 
+// Connexion utilisateur
+exports.login = (req, res) => {
+    const { username, password } = req.body;
 
+    connection.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
+        if (err) return res.status(500).json({ message: 'Erreur serveur', error: err });
+        if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+        const user = results[0];
+        const isValid = bcrypt.compareSync(password, user.password);
+
+        if (!isValid) {
+            return res.status(401).json({ message: 'Mot de passe incorrect' });
+        }
+
+        // Créer un token JWT de session
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            SECRET_KEY,
+            { expiresIn: '2h' }
+        );
+
+        res.json({
+            message: 'Connexion réussie',
+            token,
+            user: { id: user.id, username: user.username, email: user.email }
+        });
+    });
+};
