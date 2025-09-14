@@ -50,6 +50,48 @@ window.addEventListener('load', () => {
 function redirectLogin() {
     window.location.href = 'login.html?t=' + Date.now();
 }
+// -----------------------------
+// Afficher les plats selon catégorie
+// -----------------------------
+async function afficherPlats(categorie) {
+    const container = document.getElementById(`${categorie}-container`);
+    if (!container) return;
+
+    container.innerHTML = '<p>Chargement...</p>';
+
+    try {
+        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/plats/${categorie}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        const plats = await res.json();
+
+        container.innerHTML = '';
+        if (plats.length === 0) {
+            container.innerHTML = '<p>Aucun plat disponible</p>';
+            return;
+        }
+
+        plats.forEach(plat => {
+            const platDiv = document.createElement('div');
+            platDiv.className = 'card mb-2';
+            platDiv.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">${plat.nom}</h5>
+                    <p class="card-text">${plat.description}</p>
+                    <p><strong>Prix :</strong> ${plat.prix} Ar</p>
+                    <button class="btn btn-sm btn-primary" onclick="editPlat(${plat.id}, '${categorie}')">Modifier</button>
+                    <button class="btn btn-sm btn-danger" onclick="deletePlat(${plat.id}, '${categorie}')">Supprimer</button>
+                </div>
+            `;
+            container.appendChild(platDiv);
+        });
+    } catch (err) {
+        console.error(`Erreur chargement plats (${categorie}):`, err);
+        container.innerHTML = `<p class="text-danger">Erreur chargement plats</p>`;
+        showToast(`Erreur chargement plats (${categorie})`, 'error');
+    }
+}
 
 // -----------------------------
 // Initialisation page admin
@@ -433,48 +475,6 @@ async function updateOrderStatus(commandeId, status) {
     }
 }
 
-// -----------------------------
-// Afficher les plats selon catégorie
-// -----------------------------
-async function afficherPlats(categorie) {
-    const container = document.getElementById(`${categorie}-container`);
-    if (!container) return;
-
-    container.innerHTML = '<p>Chargement...</p>';
-
-    try {
-        const res = await fetch(`https://restaurant-api-d4x5.onrender.com/api/plats/${categorie}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-        });
-        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-        const plats = await res.json();
-
-        container.innerHTML = '';
-        if (plats.length === 0) {
-            container.innerHTML = '<p>Aucun plat disponible</p>';
-            return;
-        }
-
-        plats.forEach(plat => {
-            const platDiv = document.createElement('div');
-            platDiv.className = 'card mb-2';
-            platDiv.innerHTML = `
-                <div class="card-body">
-                    <h5 class="card-title">${plat.nom}</h5>
-                    <p class="card-text">${plat.description}</p>
-                    <p><strong>Prix :</strong> ${plat.prix} Ar</p>
-                    <button class="btn btn-sm btn-primary" onclick="editPlat(${plat.id}, '${categorie}')">Modifier</button>
-                    <button class="btn btn-sm btn-danger" onclick="deletePlat(${plat.id}, '${categorie}')">Supprimer</button>
-                </div>
-            `;
-            container.appendChild(platDiv);
-        });
-    } catch (err) {
-        console.error(`Erreur chargement plats (${categorie}):`, err);
-        container.innerHTML = `<p class="text-danger">Erreur chargement plats</p>`;
-        showToast(`Erreur chargement plats (${categorie})`, 'error');
-    }
-}
 
 // -----------------------------
 // Supprimer un plat
