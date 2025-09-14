@@ -52,12 +52,9 @@ function redirectLogin() {
     window.location.href = 'login.html?t=' + Date.now();
 }
 function fetchPlats(categorie) {
-    fetch(`${APP_URL_BACKEND}/api/plats`)  // changer en prod si besoin
+    fetch(`${APP_URL_BACKEND}/api/plats/${categorie}`)
         .then(res => res.json())
-        .then(data => {
-            const platsCat = data.filter(plat => plat.categorie === categorie);
-            afficherPlats(`${categorie}-container`, platsCat);
-        })
+        .then(plats => afficherPlats(`${categorie}-container`, plats))
         .catch(err => console.error(err));
 }
 
@@ -66,7 +63,8 @@ function fetchPlats(categorie) {
 // Afficher les plats selon catégorie
 // -----------------------------
 async function afficherPlats(categorie, plats = null) {
-    const container = document.getElementById(`${categorie}-container`);
+    const containerId = categorie.includes('-container') ? categorie : `${categorie}-container`;
+    const container = document.getElementById(containerId);
     if (!container) return;
 
     container.innerHTML = '<p>Chargement...</p>';
@@ -123,7 +121,6 @@ function initAdminPage() {
     document.title = 'Gestion des Plats - Admin';
 
     ['entrees', 'plats', 'desserts', 'boissons', 'plats-jour'].forEach(categorie => afficherPlats(categorie));
-
     document.getElementById('view-orders').addEventListener('click', () => {
         loadCommandes();
         new bootstrap.Modal(document.getElementById('ordersModal')).show();
@@ -153,7 +150,7 @@ function initAdminPage() {
 // Initialisation Socket.IO après token vérifié
 // -----------------------------
 function initSocket() {
-    socket = io('${APP_URL_BACKEND}', {
+    socket = io(`${APP_URL_BACKEND}`, {
         auth: { token: localStorage.getItem('adminToken') || null }
     });
 
@@ -256,7 +253,7 @@ async function loadExistingQRCodes() {
     tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Chargement...</td></tr>';
     
     try {
-        const res = await fetch('${APP_URL_BACKEND}/api/qrcodes', {
+        const res = await fetch(`${APP_URL_BACKEND}/api/qrcodes`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
@@ -429,7 +426,7 @@ async function loadHistory() {
     historyList.innerHTML = `<p>Chargement...</p>`;
 
     try {
-        const res = await fetch('${APP_URL_BACKEND}/api/historique_commandes', {
+        const res = await fetch(`${APP_URL_BACKEND}/api/historique_commandes`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
